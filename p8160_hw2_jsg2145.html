@@ -460,11 +460,41 @@ summary(dos_cloglog)</code></pre>
 <pre class="r"><code>dos_logit_ci = dos_logit %&gt;% 
   broom::tidy() %&gt;% 
   mutate(
-    lower = estimate - qnorm(.975) * std.error,
-    upper = estimate + qnorm(.975) * std.error
-  ) %&gt;% 
+    lower = round((estimate - qnorm(.975) * std.error), digits = 2),
+    upper = round((estimate + qnorm(.975) * std.error), digits = 2)) %&gt;%
   select(term, estimate, lower, upper) %&gt;% 
-  filter(term == &quot;dose&quot;)</code></pre>
+  filter(term == &quot;dose&quot;) %&gt;% 
+  mutate(term = recode(term, dose = &quot;logit&quot;))
+
+dos_probit_ci = dos_probit %&gt;% 
+  broom::tidy() %&gt;% 
+  mutate(
+    lower = round((estimate - qnorm(.975) * std.error), digits = 2),
+    upper = round((estimate + qnorm(.975) * std.error), digits = 2)) %&gt;% 
+  select(term, estimate, lower, upper) %&gt;% 
+  filter(term == &quot;dose&quot;) %&gt;% 
+  mutate(term = recode(term, dose = &quot;probit&quot;))
+
+dos_cloglog_ci = dos_cloglog %&gt;% 
+  broom::tidy() %&gt;% 
+  mutate(
+    lower = round((estimate - qnorm(.975) * std.error), digits = 2),
+    upper = round((estimate + qnorm(.975) * std.error), digits = 2)) %&gt;%
+  select(term, estimate, lower, upper) %&gt;% 
+  filter(term == &quot;dose&quot;) %&gt;% 
+  mutate(term = recode(term, dose = &quot;cloglog&quot;))
+
+table = rbind(dos_logit_ci, dos_probit_ci, dos_cloglog_ci)</code></pre>
+<pre class="r"><code>dev_logit = deviance(dos_logit)
+
+dev_probit = deviance(dos_probit)
+
+dev_cloglog = deviance(dos_cloglog)
+
+deviance = c(dev_logit, dev_probit, dev_cloglog)
+
+table = table %&gt;% 
+  mutate(deviance = c(dev_logit, dev_probit, dev_cloglog))</code></pre>
 
 
 

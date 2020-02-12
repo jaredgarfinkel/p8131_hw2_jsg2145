@@ -58,12 +58,47 @@ summary(dos_cloglog)
 dos_logit_ci = dos_logit %>% 
   broom::tidy() %>% 
   mutate(
-    lower = estimate - qnorm(.975) * std.error,
-    upper = estimate + qnorm(.975) * std.error
-  ) %>% 
+    lower = round((estimate - qnorm(.975) * std.error), digits = 2),
+    upper = round((estimate + qnorm(.975) * std.error), digits = 2)) %>%
   select(term, estimate, lower, upper) %>% 
-  filter(term == "dose")
+  filter(term == "dose") %>% 
+  mutate(term = recode(term, dose = "logit"))
+
+dos_probit_ci = dos_probit %>% 
+  broom::tidy() %>% 
+  mutate(
+    lower = round((estimate - qnorm(.975) * std.error), digits = 2),
+    upper = round((estimate + qnorm(.975) * std.error), digits = 2)) %>% 
+  select(term, estimate, lower, upper) %>% 
+  filter(term == "dose") %>% 
+  mutate(term = recode(term, dose = "probit"))
+
+dos_cloglog_ci = dos_cloglog %>% 
+  broom::tidy() %>% 
+  mutate(
+    lower = round((estimate - qnorm(.975) * std.error), digits = 2),
+    upper = round((estimate + qnorm(.975) * std.error), digits = 2)) %>%
+  select(term, estimate, lower, upper) %>% 
+  filter(term == "dose") %>% 
+  mutate(term = recode(term, dose = "cloglog"))
+
+table = rbind(dos_logit_ci, dos_probit_ci, dos_cloglog_ci)
 ```
 
+```{r}
+dev_logit = deviance(dos_logit)
 
+dev_probit = deviance(dos_probit)
+
+dev_cloglog = deviance(dos_cloglog)
+
+deviance = c(dev_logit, dev_probit, dev_cloglog)
+
+table = table %>% 
+  mutate(deviance = c(dev_logit, dev_probit, dev_cloglog))
+```
+
+```{r}
+
+```
 
