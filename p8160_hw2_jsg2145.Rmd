@@ -24,3 +24,46 @@ scale_fill_discrete = scale_fill_viridis_d
 theme_set(theme_minimal() + theme(legend.position = "bottom"))
 ```
 
+```{r}
+# Create a dataframe
+
+dos_df <- tibble(
+  dose = c(0:4),
+  dead = c(2, 8, 15, 23, 27),
+  alive = 30 - dead
+)
+```
+
+```{r}
+dos_logit <- dos_df %>% 
+  glm(data = ., cbind(dead, alive) ~ dose, family = binomial(link = "logit"))
+
+summary(dos_logit)
+```
+
+```{r}
+dos_probit <- dos_df %>% 
+  glm(data = ., cbind(dead, alive) ~ dose, family = binomial(link = "probit"))
+
+summary(dos_probit)
+```
+
+```{r}
+dos_cloglog <- dos_df %>% 
+  glm(data = ., cbind(dead, alive) ~ dose, family = binomial(link = "cloglog"))
+
+summary(dos_cloglog)
+```
+```{r}
+dos_logit_ci = dos_logit %>% 
+  broom::tidy() %>% 
+  mutate(
+    lower = estimate - qnorm(.975) * std.error,
+    upper = estimate + qnorm(.975) * std.error
+  ) %>% 
+  select(term, estimate, lower, upper) %>% 
+  filter(term == "dose")
+```
+
+
+
