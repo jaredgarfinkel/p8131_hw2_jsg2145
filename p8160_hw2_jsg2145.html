@@ -485,16 +485,107 @@ dos_cloglog_ci = dos_cloglog %&gt;%
   mutate(term = recode(term, dose = &quot;cloglog&quot;))
 
 table = rbind(dos_logit_ci, dos_probit_ci, dos_cloglog_ci)</code></pre>
-<pre class="r"><code>dev_logit = deviance(dos_logit)
+<pre class="r"><code>dev_logit = round(deviance(dos_logit), digits = 2)
 
-dev_probit = deviance(dos_probit)
+dev_probit = round(deviance(dos_probit), digits = 2)
 
-dev_cloglog = deviance(dos_cloglog)
+dev_cloglog = round(deviance(dos_cloglog), digits = 2)
 
 deviance = c(dev_logit, dev_probit, dev_cloglog)
 
 table = table %&gt;% 
   mutate(deviance = c(dev_logit, dev_probit, dev_cloglog))</code></pre>
+<pre class="r"><code>p_logit = predict(dos_logit, data.frame(dose=.01), se.fit=TRUE, type=&#39;response&#39;)
+
+p_probit = predict(dos_probit, data.frame(dose=.01), se.fit=TRUE, type=&#39;response&#39;)
+
+p_cloglog = predict(dos_cloglog, data.frame(dose=.01), se.fit=TRUE, type=&#39;response&#39;)
+
+table = table %&gt;% 
+  mutate(p_estimate = c(round(p_logit[[1]], digits = 2), round(p_probit[[1]], digits = 2), round(p_cloglog[[1]], digits = 2))) %&gt;% 
+  knitr::kable()
+
+table</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">term</th>
+<th align="right">estimate</th>
+<th align="right">lower</th>
+<th align="right">upper</th>
+<th align="right">deviance</th>
+<th align="right">p_estimate</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">logit</td>
+<td align="right">1.1618949</td>
+<td align="right">0.81</td>
+<td align="right">1.52</td>
+<td align="right">0.38</td>
+<td align="right">0.09</td>
+</tr>
+<tr class="even">
+<td align="left">probit</td>
+<td align="right">0.6863805</td>
+<td align="right">0.50</td>
+<td align="right">0.88</td>
+<td align="right">0.31</td>
+<td align="right">0.09</td>
+</tr>
+<tr class="odd">
+<td align="left">cloglog</td>
+<td align="right">0.7468193</td>
+<td align="right">0.53</td>
+<td align="right">0.96</td>
+<td align="right">2.23</td>
+<td align="right">0.13</td>
+</tr>
+</tbody>
+</table>
+<div id="ii" class="section level2">
+<h2>1ii</h2>
+<pre class="r"><code>beta0_l=dos_logit$coefficients[1]
+beta1_l=dos_logit$coefficients[2]
+betacov_l=vcov(dos_logit)
+x0fit_l=-beta0_l/beta1_l
+exp(x0fit_l)</code></pre>
+<pre><code>## (Intercept) 
+##    7.389056</code></pre>
+<pre class="r"><code>varx0_l=betacov_l[1,1]/(beta1_l^2)+betacov_l[2,2]*(beta0_l^2)/(beta1_l^4)-2*betacov_l[1,2]*beta0_l/(beta1_l^3)
+c(x0fit_l,sqrt(varx0_l)) # point est and se</code></pre>
+<pre><code>## (Intercept)        dose 
+##   2.0000000   0.1784367</code></pre>
+<pre class="r"><code>exp(x0fit_l+c(qnorm(0.05),-qnorm(0.05))*sqrt(varx0_l))</code></pre>
+<pre><code>## [1] 5.509631 9.909583</code></pre>
+<pre class="r"><code>beta0_p=dos_probit$coefficients[1]
+beta1_p=dos_probit$coefficients[2]
+betacov_p=vcov(dos_probit)
+x0fit_p=-beta0_p/beta1_p
+exp(x0fit_p)</code></pre>
+<pre><code>## (Intercept) 
+##     7.43583</code></pre>
+<pre class="r"><code>varx0_p=betacov_p[1,1]/(beta1_p^2)+betacov_p[2,2]*(beta0_p^2)/(beta1_p^4)-2*betacov_p[1,2]*beta0_p/(beta1_p^3)
+c(x0fit_p,sqrt(varx0_p)) # point est and se</code></pre>
+<pre><code>## (Intercept)        dose 
+##   2.0063102   0.1742755</code></pre>
+<pre class="r"><code>exp(x0fit_p+c(qnorm(0.05),-qnorm(0.05))*sqrt(varx0_p))</code></pre>
+<pre><code>## [1] 5.582588 9.904289</code></pre>
+<pre class="r"><code>beta0_c=dos_cloglog$coefficients[1]
+beta1_c=dos_cloglog$coefficients[2]
+betacov_c=vcov(dos_cloglog)
+x0fit_c=(log(log(2))-beta0_c)/beta1_c
+exp(x0fit_c)</code></pre>
+<pre><code>## (Intercept) 
+##    8.841249</code></pre>
+<pre class="r"><code>varx0_c=betacov_c[1,1]/(beta1_c^2)+betacov_c[2,2]*(beta0_c^2)/(beta1_c^4)-2*betacov_c[1,2]*beta0_c/(beta1_c^3)
+c(x0fit_c,sqrt(varx0_c)) # point est and se</code></pre>
+<pre><code>## (Intercept)        dose 
+##   2.1794281   0.1744033</code></pre>
+<pre class="r"><code>exp(x0fit_c+c(qnorm(0.05),-qnorm(0.05))*sqrt(varx0_c))</code></pre>
+<pre><code>## [1]  6.636337 11.778739</code></pre>
+</div>
 
 
 

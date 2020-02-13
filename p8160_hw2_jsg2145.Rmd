@@ -86,11 +86,11 @@ table = rbind(dos_logit_ci, dos_probit_ci, dos_cloglog_ci)
 ```
 
 ```{r}
-dev_logit = deviance(dos_logit)
+dev_logit = round(deviance(dos_logit), digits = 2)
 
-dev_probit = deviance(dos_probit)
+dev_probit = round(deviance(dos_probit), digits = 2)
 
-dev_cloglog = deviance(dos_cloglog)
+dev_cloglog = round(deviance(dos_cloglog), digits = 2)
 
 deviance = c(dev_logit, dev_probit, dev_cloglog)
 
@@ -99,6 +99,53 @@ table = table %>%
 ```
 
 ```{r}
+p_logit = predict(dos_logit, data.frame(dose=.01), se.fit=TRUE, type='response')
 
+p_probit = predict(dos_probit, data.frame(dose=.01), se.fit=TRUE, type='response')
+
+p_cloglog = predict(dos_cloglog, data.frame(dose=.01), se.fit=TRUE, type='response')
+
+table = table %>% 
+  mutate(p_estimate = c(round(p_logit[[1]], digits = 2), round(p_probit[[1]], digits = 2), round(p_cloglog[[1]], digits = 2))) %>% 
+  knitr::kable()
+
+table
 ```
+
+## 1ii
+
+```{r}
+beta0_l=dos_logit$coefficients[1]
+beta1_l=dos_logit$coefficients[2]
+betacov_l=vcov(dos_logit)
+x0fit_l=-beta0_l/beta1_l
+exp(x0fit_l)
+
+varx0_l=betacov_l[1,1]/(beta1_l^2)+betacov_l[2,2]*(beta0_l^2)/(beta1_l^4)-2*betacov_l[1,2]*beta0_l/(beta1_l^3)
+c(x0fit_l,sqrt(varx0_l)) # point est and se
+exp(x0fit_l+c(qnorm(0.05),-qnorm(0.05))*sqrt(varx0_l))
+
+beta0_p=dos_probit$coefficients[1]
+beta1_p=dos_probit$coefficients[2]
+betacov_p=vcov(dos_probit)
+x0fit_p=-beta0_p/beta1_p
+exp(x0fit_p)
+
+varx0_p=betacov_p[1,1]/(beta1_p^2)+betacov_p[2,2]*(beta0_p^2)/(beta1_p^4)-2*betacov_p[1,2]*beta0_p/(beta1_p^3)
+c(x0fit_p,sqrt(varx0_p)) # point est and se
+exp(x0fit_p+c(qnorm(0.05),-qnorm(0.05))*sqrt(varx0_p))
+
+beta0_c=dos_cloglog$coefficients[1]
+beta1_c=dos_cloglog$coefficients[2]
+betacov_c=vcov(dos_cloglog)
+x0fit_c=(log(log(2))-beta0_c)/beta1_c
+exp(x0fit_c)
+
+varx0_c=betacov_c[1,1]/(beta1_c^2)+betacov_c[2,2]*(beta0_c^2)/(beta1_c^4)-2*betacov_c[1,2]*beta0_c/(beta1_c^3)
+c(x0fit_c,sqrt(varx0_c)) # point est and se
+exp(x0fit_c+c(qnorm(0.05),-qnorm(0.05))*sqrt(varx0_c))
+```
+
+
+
 
