@@ -8,6 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(viridis)
+library(ResourceSelection)
 knitr::opts_chunk$set(
 	echo = TRUE,
 	warning = FALSE,
@@ -115,6 +116,7 @@ table
 ## 1ii
 
 ```{r}
+
 beta0_l=dos_logit$coefficients[1]
 beta1_l=dos_logit$coefficients[2]
 betacov_l=vcov(dos_logit)
@@ -122,8 +124,10 @@ x0fit_l=-beta0_l/beta1_l
 exp(x0fit_l)
 
 varx0_l=betacov_l[1,1]/(beta1_l^2)+betacov_l[2,2]*(beta0_l^2)/(beta1_l^4)-2*betacov_l[1,2]*beta0_l/(beta1_l^3)
-c(x0fit_l,sqrt(varx0_l)) # point est and se
-exp(x0fit_l+c(qnorm(0.05),-qnorm(0.05))*sqrt(varx0_l))
+est_sd = c(x0fit_l,sqrt(varx0_l))
+ci = exp(x0fit_l+c(qnorm(0.05),-qnorm(0.05))*sqrt(varx0_l))
+
+
 
 beta0_p=dos_probit$coefficients[1]
 beta1_p=dos_probit$coefficients[2]
@@ -134,6 +138,8 @@ exp(x0fit_p)
 varx0_p=betacov_p[1,1]/(beta1_p^2)+betacov_p[2,2]*(beta0_p^2)/(beta1_p^4)-2*betacov_p[1,2]*beta0_p/(beta1_p^3)
 c(x0fit_p,sqrt(varx0_p)) # point est and se
 exp(x0fit_p+c(qnorm(0.05),-qnorm(0.05))*sqrt(varx0_p))
+
+
 
 beta0_c=dos_cloglog$coefficients[1]
 beta1_c=dos_cloglog$coefficients[2]
@@ -147,5 +153,39 @@ exp(x0fit_c+c(qnorm(0.05),-qnorm(0.05))*sqrt(varx0_c))
 ```
 
 
+## Problem 2
 
+```{r}
+data = tibble(
+  amount = seq(from = 10, to = 90, by = 5),
+  offer = c(4,6,10,12,39,36,22,14,10,12,8,9,3,1,5,2,1),
+  enrolls = c(0,2,4,2,12,14,10,7,5,5,3,5,2,0,4,2,1),
+  passes = offer - enrolls
+)
+```
+
+```{r}
+dat_glm = data %>% glm(data = ., cbind(enrolls, passes) ~ amount, family = binomial(link = 'logit'))
+summary(dat_glm)
+
+dev_glm = deviance(dat_glm)
+hl = hoslem.test(dat_glm$y, fitted(dat_glm), g = 10)
+
+hl
+
+pval = 1-pchisq(dev_glm,15)
+
+pval
+```
+
+```{r}
+dat_glm %>%
+  broom::tidy() %>% 
+  mutate(
+    lower = estimate - qnorm(.975) * std.error,
+    upper = estimate + qnorm(.975) * std.error,
+  ) %>% 
+  filter(term == "amount") %>% 
+  select(term, estimate, lower, upper)
+```
 

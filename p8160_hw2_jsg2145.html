@@ -554,12 +554,12 @@ exp(x0fit_l)</code></pre>
 <pre><code>## (Intercept) 
 ##    7.389056</code></pre>
 <pre class="r"><code>varx0_l=betacov_l[1,1]/(beta1_l^2)+betacov_l[2,2]*(beta0_l^2)/(beta1_l^4)-2*betacov_l[1,2]*beta0_l/(beta1_l^3)
-c(x0fit_l,sqrt(varx0_l)) # point est and se</code></pre>
-<pre><code>## (Intercept)        dose 
-##   2.0000000   0.1784367</code></pre>
-<pre class="r"><code>exp(x0fit_l+c(qnorm(0.05),-qnorm(0.05))*sqrt(varx0_l))</code></pre>
-<pre><code>## [1] 5.509631 9.909583</code></pre>
-<pre class="r"><code>beta0_p=dos_probit$coefficients[1]
+est_sd = c(x0fit_l,sqrt(varx0_l))
+ci = exp(x0fit_l+c(qnorm(0.05),-qnorm(0.05))*sqrt(varx0_l))
+
+
+
+beta0_p=dos_probit$coefficients[1]
 beta1_p=dos_probit$coefficients[2]
 betacov_p=vcov(dos_probit)
 x0fit_p=-beta0_p/beta1_p
@@ -585,6 +585,65 @@ c(x0fit_c,sqrt(varx0_c)) # point est and se</code></pre>
 ##   2.1794281   0.1744033</code></pre>
 <pre class="r"><code>exp(x0fit_c+c(qnorm(0.05),-qnorm(0.05))*sqrt(varx0_c))</code></pre>
 <pre><code>## [1]  6.636337 11.778739</code></pre>
+</div>
+<div id="problem-2" class="section level2">
+<h2>Problem 2</h2>
+<pre class="r"><code>data = tibble(
+  amount = seq(from = 10, to = 90, by = 5),
+  offer = c(4,6,10,12,39,36,22,14,10,12,8,9,3,1,5,2,1),
+  enrolls = c(0,2,4,2,12,14,10,7,5,5,3,5,2,0,4,2,1),
+  passes = offer - enrolls
+)</code></pre>
+<pre class="r"><code>dat_glm = data %&gt;% glm(data = ., cbind(enrolls, passes) ~ amount, family = binomial(link = &#39;logit&#39;))
+summary(dat_glm)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = cbind(enrolls, passes) ~ amount, family = binomial(link = &quot;logit&quot;), 
+##     data = .)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.4735  -0.6731   0.1583   0.5285   1.1275  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept) -1.64764    0.42144  -3.910 9.25e-05 ***
+## amount       0.03095    0.00968   3.197  0.00139 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 21.617  on 16  degrees of freedom
+## Residual deviance: 10.613  on 15  degrees of freedom
+## AIC: 51.078
+## 
+## Number of Fisher Scoring iterations: 4</code></pre>
+<pre class="r"><code>dev_glm = deviance(dat_glm)
+hl = hoslem.test(dat_glm$y, fitted(dat_glm), g = 10)
+
+hl</code></pre>
+<pre><code>## 
+##  Hosmer and Lemeshow goodness of fit (GOF) test
+## 
+## data:  dat_glm$y, fitted(dat_glm)
+## X-squared = 1.6111, df = 8, p-value = 0.9907</code></pre>
+<pre class="r"><code>pval = 1-pchisq(dev_glm,15)
+
+pval</code></pre>
+<pre><code>## [1] 0.7795345</code></pre>
+<pre class="r"><code>dat_glm %&gt;%
+  broom::tidy() %&gt;% 
+  mutate(
+    lower = estimate - qnorm(.975) * std.error,
+    upper = estimate + qnorm(.975) * std.error,
+  ) %&gt;% 
+  filter(term == &quot;amount&quot;) %&gt;% 
+  select(term, estimate, lower, upper)</code></pre>
+<pre><code>## # A tibble: 1 x 4
+##   term   estimate  lower  upper
+##   &lt;chr&gt;     &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+## 1 amount   0.0310 0.0120 0.0499</code></pre>
 </div>
 
 
