@@ -213,12 +213,12 @@ The odds ratio of enrolling in this MPH program increases by `r round((exp(pull(
 beta0_mph=dat_glm$coefficients[1]
 beta1_mph=dat_glm$coefficients[2]
 betacov_mph=vcov(dat_glm)
-x0fit_mph=-beta0_mph/beta1_mph
-est_mph = x0fit_mph*1000
+x0_mph=(log(0.4/0.6) - beta0_mph) / beta1_mph
+est_mph = x0_mph*1000
 
 varx0_mph=betacov_mph[1,1]/(beta1_mph^2)+betacov_mph[2,2]*(beta0_mph^2)/(beta1_mph^4)-2*betacov_mph[1,2]*beta0_mph/(beta1_mph^3)
-est_sd_mph = c(x0fit_mph,sqrt(varx0_mph))
-ci_mph = (x0fit_mph+c(qnorm(0.025),-qnorm(0.025))*sqrt(varx0_mph))*1000
+est_sd_mph = c(x0_mph,sqrt(varx0_mph))
+ci_mph = (x0_mph+c(qnorm(0.025),-qnorm(0.025))*sqrt(varx0_mph))*1000
 
 ci_tbl = tibble(
   term = "logit",
