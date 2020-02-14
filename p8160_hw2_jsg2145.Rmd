@@ -36,6 +36,8 @@ dos_df <- tibble(
 ```
 
 ```{r}
+# create a logistic regression
+
 dos_logit <- dos_df %>% 
   glm(data = ., cbind(dead, alive) ~ dose, family = binomial(link = "logit"))
 
@@ -43,6 +45,8 @@ summary(dos_logit)
 ```
 
 ```{r}
+# Create a normal regression
+
 dos_probit <- dos_df %>% 
   glm(data = ., cbind(dead, alive) ~ dose, family = binomial(link = "probit"))
 
@@ -50,12 +54,15 @@ summary(dos_probit)
 ```
 
 ```{r}
+# Create a complementary log-log regression
 dos_cloglog <- dos_df %>% 
   glm(data = ., cbind(dead, alive) ~ dose, family = binomial(link = "cloglog"))
 
 summary(dos_cloglog)
 ```
 ```{r}
+# Return confidence intervals for each regression
+
 dos_logit_ci = dos_logit %>% 
   broom::tidy() %>% 
   mutate(
@@ -87,6 +94,8 @@ table = rbind(dos_logit_ci, dos_probit_ci, dos_cloglog_ci)
 ```
 
 ```{r}
+# Return deviances for each regression
+
 dev_logit = deviance(dos_logit)
 
 dev_probit = deviance(dos_probit)
@@ -100,6 +109,8 @@ table = table %>%
 ```
 
 ```{r}
+# Return probability of event for dose = 0.01 on the dataframe
+
 p_logit = predict(dos_logit, data.frame(dose=.01), se.fit=TRUE, type='response')
 
 p_probit = predict(dos_probit, data.frame(dose=.01), se.fit=TRUE, type='response')
@@ -108,14 +119,18 @@ p_cloglog = predict(dos_cloglog, data.frame(dose=.01), se.fit=TRUE, type='respon
 
 table = table %>% 
   mutate(p_estimate = c(round(p_logit[[1]], digits = 2), round(p_probit[[1]], digits = 2), round(p_cloglog[[1]], digits = 2))) %>% 
+
+table %>%
   knitr::kable(digits = 2)
 
-table
 ```
 
 ## 1ii
 
 ```{r}
+# Return 95% confidence intervals for the betas and beta_0s for each regression
+
+# logit
 
 beta0_l=dos_logit$coefficients[1]
 beta1_l=dos_logit$coefficients[2]
@@ -127,7 +142,7 @@ varx0_l=betacov_l[1,1]/(beta1_l^2)+betacov_l[2,2]*(beta0_l^2)/(beta1_l^4)-2*beta
 est_sd_l = c(x0fit_l,sqrt(varx0_l))
 ci_l = exp(x0fit_l+c(qnorm(0.05),-qnorm(0.05))*sqrt(varx0_l))
 
-
+#probit
 
 beta0_p=dos_probit$coefficients[1]
 beta1_p=dos_probit$coefficients[2]
@@ -139,7 +154,7 @@ varx0_p=betacov_p[1,1]/(beta1_p^2)+betacov_p[2,2]*(beta0_p^2)/(beta1_p^4)-2*beta
 est_sd_p = c(x0fit_p,sqrt(varx0_p)) # point est and se
 ci_p = exp(x0fit_p+c(qnorm(0.05),-qnorm(0.05))*sqrt(varx0_p))
 
-
+#cloglog
 
 beta0_c=dos_cloglog$coefficients[1]
 beta1_c=dos_cloglog$coefficients[2]
@@ -166,6 +181,8 @@ dos_ci %>%
 ## Problem 2
 
 ```{r}
+# Create a dataframe
+
 data = tibble(
   amount = seq(from = 10, to = 90, by = 5),
   offer = c(4,6,10,12,39,36,22,14,10,12,8,9,3,1,5,2,1),
@@ -173,10 +190,16 @@ data = tibble(
   passes = offer - enrolls
 )
 ```
+
 ## 2i
+
 ```{r}
+# Fit a logistic regression
+
 dat_glm = data %>% glm(data = ., cbind(enrolls, passes) ~ amount, family = binomial(link = 'logit'))
 summary(dat_glm)
+
+# Run diagnostics for small sample sizes (Hos-Lem)
 
 dev_glm = deviance(dat_glm)
 hl = hoslem.test(dat_glm$y, fitted(dat_glm), g = 10)
@@ -188,9 +211,13 @@ pval = 1-pchisq(dev_glm,15)
 pval
 ```
 
+The p-values are greater than 0.05, indicating that the model is a good fit.
+
 ## 2ii
 
 ```{r}
+# Return 95% confidence interval for the estimate of beta
+
 dat_tbl = dat_glm %>%
   broom::tidy() %>% 
   mutate(
