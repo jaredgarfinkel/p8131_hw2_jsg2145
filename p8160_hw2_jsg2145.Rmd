@@ -2,7 +2,7 @@
 title: "p8131_hw2_jsg2145"
 author: "Jared Garfinkel"
 date: "2/12/2020"
-output: github_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -24,6 +24,18 @@ scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
 theme_set(theme_minimal() + theme(legend.position = "bottom"))
 ```
+
+## Homework 2
+
+This homework requires the use of logistic regression to practice fitting logistic models with given datasets.
+
+## Problem 1
+
+This problem explores the similarities and differences between link functions in linear regression. While the logit and probit link functions return similar results, it appears that the complementary log-log link function has a wider confidence interval and larger deviance, indicating a logistical regression model may be appropriate in this case.
+
+## Problem 1i
+
+Create a table of descriptive statistics for beta, a proxy for the effect size.
 
 ```{r}
 # Create a dataframe
@@ -125,7 +137,9 @@ table %>%
 
 ```
 
-## 1ii
+## Problem 1ii
+
+The purpose of Problem 1ii is to use the variance-covariance matrix to calculate a 95% confidence interval of the effect size for the exposure in this dataset, dosage.
 
 ```{r}
 # Return 95% confidence intervals for the betas and beta_0s for each regression
@@ -180,6 +194,8 @@ dos_ci %>%
 
 ## Problem 2
 
+This problem focuses on how to use linear regression to determine the goodness of fit of a model with a dataset.
+
 ```{r}
 # Create a dataframe
 
@@ -191,7 +207,9 @@ data = tibble(
 )
 ```
 
-## 2i
+## Problem 2i
+
+This question uses our knowledge of logistic regression to study the goodness of fit of the given data. A Hosmer-Lemeshow test is used for a dataset with small sample size. The Hosmer-Lemeshow and Pearson Chi-Square Residual tests show the model is a good fit.
 
 ```{r}
 # Fit a logistic regression
@@ -213,7 +231,7 @@ pval
 
 The p-values are greater than 0.05, indicating that the model is a good fit.
 
-## 2ii
+## Problem 2ii
 
 ```{r}
 # Return 95% confidence interval for the estimate of beta
@@ -234,7 +252,7 @@ dat_tbl %>%
 
 The odds ratio of enrolling in this MPH program increases by `r round((exp(pull(dat_tbl, estimate))-1)*100, digits = 2)`, CI: (`r round((exp(pull(dat_tbl, lower))-1)*100, digits = 2)`, `r round((exp(pull(dat_tbl, upper))-1)*100, digits = 2)`) percent per $1000 offered.
 
-## 2iii
+## Problem 2iii
 
 ```{r}
 beta0_mph=dat_glm$coefficients[1]
